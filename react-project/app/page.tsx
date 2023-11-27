@@ -1,3 +1,5 @@
+"use client"
+
 import Image from 'next/image'
 import page from './test/page'
 import Link from 'next/link'

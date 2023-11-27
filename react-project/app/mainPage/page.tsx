@@ -1,11 +1,25 @@
 import Link from 'next/link'
 import React from 'react'
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/use-toast"
+
+
 
 const MainPage = () => {
+    const { toast } = useToast()
+
     return (
         <main>
-            <div>Main page of the app</div>
-            <Link href="/test/">About</Link>
+            <Button
+                onClick={() => {
+                    toast({
+                        title: "Scheduled: Catch up",
+                        description: "Friday, February 10, 2023 at 5:57 PM",
+                    })
+                }}
+            >
+                Show Toast
+            </Button>
         </main>
 
     )
