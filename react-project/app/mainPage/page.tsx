@@ -1,10 +1,36 @@
 import Link from 'next/link'
-import React from 'react'
+import { Check, ChevronsUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, AreaChart, CartesianGrid, Area, Tooltip } from "recharts"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
 
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+} from "@/components/ui/command"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+
+
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, AreaChart, CartesianGrid, Area, Tooltip, Legend, Line, LineChart } from "recharts"
+import APIService, { PriceData, TradingPair } from '../api/cryptoCoinsService';
+import { cn } from '@/lib/utils'
+import React, { useState, useEffect } from 'react'
+//https://api.coinbase.com/v2/prices/BTC-USD/historic?days=76
 
 const data = [
     {
@@ -57,9 +83,39 @@ const data = [
     },
 ]
 
+
+
 const MainPage = () => {
     const { toast } = useToast()
 
+    const [btcPriceHistory, setBtcPriceHistory] = useState<PriceData[]>([]);
+    const [products, setProductsArray] = useState<TradingPair[]>([]);
+
+    const [open, setOpen] = React.useState(false)
+    const [value, setValue] = React.useState("")
+
+    const api = new APIService();
+
+
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+
+
+                const resProducts = await api.fetchProducts();
+                setProductsArray(resProducts);
+
+                await GetASingleCoin(api, resProducts[0].id, setBtcPriceHistory)
+
+
+            } catch (error) {
+                console.log(error)
+            }
+        };
+
+        fetchData();
+    }, [toast]);
     return (
         <main>
             <Button
@@ -73,50 +129,103 @@ const MainPage = () => {
                 Show Toast
             </Button>
 
-            <div >salut</div>
-            <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={data}>
-                    <XAxis
-                        dataKey="name"
-                        stroke="#888888"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                    />
-                    <YAxis
-                        stroke="#888888"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => `$${value}`}
-                    />
-                    <Bar dataKey="total" fill="#adfa1d" radius={[4, 4, 0, 0]} />
-                </BarChart>
-            </ResponsiveContainer>
 
 
-            <AreaChart width={730} height={250} data={data}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                    <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
-                    </linearGradient>
-                </defs>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip />
-                <Area type="monotone" dataKey="uv" stroke="#8884d8" fillOpacity={1} fill="url(#colorUv)" />
-                <Area type="monotone" dataKey="pv" stroke="#82ca9d" fillOpacity={1} fill="url(#colorPv)" />
-            </AreaChart>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Historic btc prices</CardTitle>
+                    {/* <CardDescription>Card Description</CardDescription> */}
+
+
+
+                    <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={open}
+                                className="w-[200px] justify-between"
+                            >
+                                {value
+                                    ? products.find((product) => product.id === value)?.display_name
+                                    : "Select trading pair..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[200px] p-0">
+                            <Command>
+                                <CommandInput placeholder="Search trading pair..." />
+                                <CommandEmpty>No trading pair found.</CommandEmpty>
+                                <CommandGroup>
+                                    {products.map((product) => (
+                                        <CommandItem
+                                            key={product.id}
+                                            value={product.id}
+                                            onSelect={async (currentValue) => {
+                                                console.log(value)
+                                                console.log(currentValue)
+                                                setValue(currentValue === value ? "" : currentValue);
+
+                                                await GetASingleCoin(api, currentValue, setBtcPriceHistory)
+
+
+                                                setOpen(false);
+                                            }}
+                                        >
+                                            <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    value === product.id ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            {product.display_name}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+
+
+
+
+                </CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={400}>
+                        <AreaChart
+                            width={730}
+                            height={250}
+                            data={btcPriceHistory}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="time" />
+                            <YAxis />
+                            <Tooltip />
+                            <Area
+                                type="monotone"
+                                dataKey="price"
+                                stroke="#cc3333" // Set stroke color to primary color
+                                fill="#cc3333" // Set fill color to primary color
+                                name="BTC Price"
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </CardContent>
+                <CardFooter>
+                </CardFooter>
+            </Card>
+
+
+
         </main>
 
     )
 }
 
 export default MainPage
+
+async function GetASingleCoin(api: APIService, product: string, setBtcPriceHistory: React.Dispatch<React.SetStateAction<PriceData[]>>) {
+    let res = await api.getBTCPrice(product, '1')
+    setBtcPriceHistory(res)
+}
