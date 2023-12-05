@@ -61,8 +61,8 @@ class APIService {
 
     // Helper function to format Unix timestamp to a readable date
     formatTimestamp(timestamp: string): string {
-        const date = new Date(parseInt(timestamp));
-        return date.toLocaleString(); // Customize the format if needed
+        const date = new Date(parseInt(timestamp) * 1000);
+        return date.toLocaleString();
     }
 
 
