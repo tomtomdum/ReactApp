@@ -105,6 +105,29 @@ const MainPage = () => {
 
     const api = new APIService();
 
+    const frameworks = [
+        {
+            value: "next.js",
+            label: "Next.js",
+        },
+        {
+            value: "sveltekit",
+            label: "SvelteKit",
+        },
+        {
+            value: "nuxt.js",
+            label: "Nuxt.js",
+        },
+        {
+            value: "remix",
+            label: "Remix",
+        },
+        {
+            value: "astro",
+            label: "Astro",
+        },
+    ]
+
     async function GetASingleCoin(api: APIService, product: string) {
         let res = await api.getBTCPrice(product, '1')
         console.log(res)
@@ -182,7 +205,7 @@ const MainPage = () => {
                                 className="w-[200px] justify-between"
                             >
                                 {value
-                                    ? products.find((product) => product.id === value)?.display_name
+                                    ? value
                                     : "Select trading pair..."}
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
@@ -213,7 +236,7 @@ const MainPage = () => {
                                                     value === product.id ? "opacity-100" : "opacity-0"
                                                 )}
                                             />
-                                            {product.display_name}
+                                            {product.id}
                                         </CommandItem>
                                     ))}
                                 </CommandGroup>
@@ -221,7 +244,91 @@ const MainPage = () => {
                         </PopoverContent>
                     </Popover>
 
+                    {/* <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={open}
+                                className="w-[200px] justify-between"
+                            >
+                                {display_name
+                                    ? products.find((pair) => pair.id === display_name)?.display_name
+                                    : "Select trading pair..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[200px] p-0">
+                            <Command>
+                                <CommandInput placeholder="Search trading pair..." />
+                                <CommandEmpty>No trading pair found.</CommandEmpty>
+                                <CommandGroup>
+                                    {products.map((pair) => (
+                                        <CommandItem
+                                            key={pair.id}
+                                            value={pair.id}
+                                            onSelect={(currentValue) => {
+                                                console.log(display_name)
+                                                setValue(currentValue === value ? "" : items.find(item => item.label.toLocaleLowerCase() === currentValue)!.value)
+                                                console.log(display_name)
+                                                setOpen(false);
+                                            }}
+                                        >
+                                            <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    display_name === pair.id ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            {pair.display_name}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            </Command>
+                        </PopoverContent>
+                    </Popover> */}
 
+                    {/* <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={open}
+                                className="w-[200px] justify-between"
+                            >
+                                {value
+                                    ? products.find((product) => product.id === value)?.display_name
+                                    : "Select framework..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[200px] p-0">
+                            <Command>
+                                <CommandInput placeholder="Search framework..." />
+                                <CommandEmpty>No product found.</CommandEmpty>
+                                <CommandGroup>
+                                    {products.map((product) => (
+                                        <CommandItem
+                                            key={product.id}
+                                            value={product.id}
+                                            onSelect={(selectedItem) => {
+                                                setValue(selectedItem === value ? "" : selectedItem)
+                                                setOpen(false)
+                                            }}
+                                        >
+                                            <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    value === product.id ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            {product.id}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            </Command>
+                        </PopoverContent>
+                    </Popover> */}
 
 
                 </CardHeader>
