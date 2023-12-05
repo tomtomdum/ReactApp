@@ -44,6 +44,8 @@ class APIService {
             price: parseFloat(item.price), // Convert the price from string to number
             time: this.formatTimestamp(item.time), // Format the timestamp to a readable date
         }));
+        //the data received from the API was formatted recent to old.
+        formattedData.sort((a, b) => a.time.localeCompare(b.time));
 
         return formattedData;
     }
@@ -51,7 +53,6 @@ class APIService {
     async fetchProducts(): Promise<TradingPair[]> {
         const res = await fetch('https://api.exchange.coinbase.com/products');
         const jsonData = await res.json();
-        console.log(jsonData)
 
         // Extract the prices array from the API response
         const productsArray: any[] = jsonData;
