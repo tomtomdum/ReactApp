@@ -26,13 +26,22 @@ export interface TradingPair {
     high_bid_limit_percentage: string;
 }
 
+export interface TradeData {
+    trade_id: number;
+    side: string;
+    size: string;
+    price: string;
+    time: string;
+}
+
+
 class APIService {
     /**
      * 
      * @param numberOfDays range of days to check for price, from today to the past selected day
      * @returns price history data of bitcoin
      */
-    async getBTCPrice(product: string, numberOfDays: string): Promise<PriceData[]> {
+    async getCoinPriceHistory(product: string, numberOfDays: string): Promise<PriceData[]> {
         const res = await fetch('https://api.coinbase.com/v2/prices/' + product + '/historic?days=' + numberOfDays);
         const jsonData = await res.json();
 
@@ -46,6 +55,28 @@ class APIService {
         }));
         //the data received from the API was formatted recent to old.
         formattedData.sort((a, b) => a.time.localeCompare(b.time));
+
+        return formattedData;
+    }
+    /**
+     * https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
+     * @param product 
+     * @param numberOfDays 
+     * @returns 
+     */
+    async getTradeHistory(product: string, numberOfDays: string,): Promise<TradeData[]> {
+        const res = await fetch('https://api.exchange.coinbase.com/products/' + product + '/trades');
+        const jsonData = await res.json();
+
+        const formattedData: TradeData[] = jsonData.map((item: any) => ({
+            trade_id: item.trade_id,
+            side: item.side,
+            size: parseFloat(item.size),
+            price: parseFloat(item.price),
+            time: this.formatTimestamp(item.time), // Assuming you have a function to format timestamps
+        }));
+
+        console.log(formattedData);
 
         return formattedData;
     }

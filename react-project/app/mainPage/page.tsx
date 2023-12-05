@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Check, ChevronsUpDown, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
+import TradeTable from '../table/page'
 
 import {
     Card,
@@ -34,11 +35,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
+
+
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, AreaChart, CartesianGrid, Area, Tooltip, Legend, Line, LineChart } from "recharts"
-import APIService, { PriceData, TradingPair } from '../api/cryptoCoinsService';
+import APIService, { PriceData, TradingPair, TradeData } from '../api/cryptoCoinsService';
 import { cn } from '@/lib/utils'
 import React, { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
+import { ColumnDef } from '@tanstack/react-table'
 //https://api.coinbase.com/v2/prices/BTC-USD/historic?days=76
 
 const data = [
@@ -92,45 +96,46 @@ const data = [
     },
 ]
 
-
+export const columns: ColumnDef<TradeData>[] = [
+    {
+        accessorKey: 'trade_id',
+        header: 'Trade ID',
+    },
+    {
+        accessorKey: 'side',
+        header: 'Action',
+    },
+    {
+        accessorKey: 'size',
+        header: 'Size',
+    },
+    {
+        accessorKey: 'price',
+        header: 'Price',
+    },
+    {
+        accessorKey: 'time',
+        header: 'Time',
+    },
+];
 
 const MainPage = () => {
     const { toast } = useToast()
 
     const [btcPriceHistory, setBtcPriceHistory] = useState<PriceData[]>([]);
     const [products, setProductsArray] = useState<TradingPair[]>([]);
+    const [TradeData, setTradeData] = useState<TradeData[]>([]);
+
 
     const [open, setOpen] = React.useState(false)
     const [value, setValue] = React.useState("")
 
     const api = new APIService();
 
-    const frameworks = [
-        {
-            value: "next.js",
-            label: "Next.js",
-        },
-        {
-            value: "sveltekit",
-            label: "SvelteKit",
-        },
-        {
-            value: "nuxt.js",
-            label: "Nuxt.js",
-        },
-        {
-            value: "remix",
-            label: "Remix",
-        },
-        {
-            value: "astro",
-            label: "Astro",
-        },
-    ]
-
     async function GetASingleCoin(api: APIService, product: string) {
-        let res = await api.getBTCPrice(product, '1')
-        console.log(res)
+        const res = await api.getCoinPriceHistory(product, '1')
+        const resTradeHistory = await api.getTradeHistory(product, '0')
+        setTradeData(resTradeHistory)
         setBtcPriceHistory(res)
     }
 
@@ -146,6 +151,9 @@ const MainPage = () => {
                 setProductsArray(resProducts);
                 console.log('prods', products)
                 await GetASingleCoin(api, resProducts[0].id)
+
+                const resTradeHistory = await api.getTradeHistory(resProducts[0].id, '0')
+                setTradeData(resTradeHistory)
 
 
             } catch (error) {
@@ -193,8 +201,6 @@ const MainPage = () => {
                 <CardHeader>
                     <CardTitle>Historic {value} </CardTitle>
                     {/* <CardDescription>Card Description</CardDescription> */}
-
-
 
                     <Popover open={open} onOpenChange={setOpen}>
                         <PopoverTrigger asChild>
@@ -244,99 +250,9 @@ const MainPage = () => {
                         </PopoverContent>
                     </Popover>
 
-                    {/* <Popover open={open} onOpenChange={setOpen}>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={open}
-                                className="w-[200px] justify-between"
-                            >
-                                {display_name
-                                    ? products.find((pair) => pair.id === display_name)?.display_name
-                                    : "Select trading pair..."}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[200px] p-0">
-                            <Command>
-                                <CommandInput placeholder="Search trading pair..." />
-                                <CommandEmpty>No trading pair found.</CommandEmpty>
-                                <CommandGroup>
-                                    {products.map((pair) => (
-                                        <CommandItem
-                                            key={pair.id}
-                                            value={pair.id}
-                                            onSelect={(currentValue) => {
-                                                console.log(display_name)
-                                                setValue(currentValue === value ? "" : items.find(item => item.label.toLocaleLowerCase() === currentValue)!.value)
-                                                console.log(display_name)
-                                                setOpen(false);
-                                            }}
-                                        >
-                                            <Check
-                                                className={cn(
-                                                    "mr-2 h-4 w-4",
-                                                    display_name === pair.id ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            {pair.display_name}
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                            </Command>
-                        </PopoverContent>
-                    </Popover> */}
-
-                    {/* <Popover open={open} onOpenChange={setOpen}>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={open}
-                                className="w-[200px] justify-between"
-                            >
-                                {value
-                                    ? products.find((product) => product.id === value)?.display_name
-                                    : "Select framework..."}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[200px] p-0">
-                            <Command>
-                                <CommandInput placeholder="Search framework..." />
-                                <CommandEmpty>No product found.</CommandEmpty>
-                                <CommandGroup>
-                                    {products.map((product) => (
-                                        <CommandItem
-                                            key={product.id}
-                                            value={product.id}
-                                            onSelect={(selectedItem) => {
-                                                setValue(selectedItem === value ? "" : selectedItem)
-                                                setOpen(false)
-                                            }}
-                                        >
-                                            <Check
-                                                className={cn(
-                                                    "mr-2 h-4 w-4",
-                                                    value === product.id ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            {product.id}
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                            </Command>
-                        </PopoverContent>
-                    </Popover> */}
-
-
                 </CardHeader>
                 <CardContent>
                     <ResponsiveContainer width="100%" height={400}>
-
-
-
 
                         <AreaChart
                             width={90000}
@@ -367,7 +283,9 @@ const MainPage = () => {
                 </CardFooter>
             </Card>
 
-
+            <Card>
+                <TradeTable columns={columns} data={TradeData} />
+            </Card>
 
         </main>
 
