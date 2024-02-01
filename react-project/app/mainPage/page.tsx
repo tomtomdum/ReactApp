@@ -3,7 +3,7 @@ import { Check, ChevronsUpDown, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import TradeTable from '../table/page'
-
+import HistoryChart from '../historyChart/page'
 import {
     Card,
     CardContent,
@@ -37,64 +37,13 @@ import {
 
 
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, AreaChart, CartesianGrid, Area, Tooltip, Legend, Line, LineChart } from "recharts"
-import APIService, { PriceData, TradingPair, TradeData } from '../api/cryptoCoinsService';
 import { cn } from '@/lib/utils'
 import React, { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { ColumnDef } from '@tanstack/react-table'
+import APIService from '../api/cryptoCoinsService'
+import { TradeData, PriceData, TradingPair } from '../interfaces/crypto'
 //https://api.coinbase.com/v2/prices/BTC-USD/historic?days=76
-
-const data = [
-    {
-        name: "Jan",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Feb",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Mar",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Apr",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "May",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Jun",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Jul",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Aug",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Sep",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Oct",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Nov",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Dec",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-]
 
 export const columns: ColumnDef<TradeData>[] = [
     {
@@ -134,7 +83,7 @@ const MainPage = () => {
 
     async function GetASingleCoin(api: APIService, product: string) {
         const res = await api.getCoinPriceHistory(product, '1')
-        const resTradeHistory = await api.getTradeHistory(product, '0')
+        const resTradeHistory = await api.getTradeHistory(product, '1')
         setTradeData(resTradeHistory)
         setBtcPriceHistory(res)
     }
@@ -197,7 +146,7 @@ const MainPage = () => {
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <Card>
+            <Card className='m-4'>
                 <CardHeader>
                     <CardTitle>Historic {value} </CardTitle>
                     {/* <CardDescription>Card Description</CardDescription> */}
@@ -252,38 +201,13 @@ const MainPage = () => {
 
                 </CardHeader>
                 <CardContent>
-                    <ResponsiveContainer width="100%" height={400}>
-
-                        <AreaChart
-                            width={90000}
-                            height={250}
-                            data={btcPriceHistory}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                            <defs>
-                                <linearGradient id="chartColor" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#051aff" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#230ec2" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="time" interval={60} />
-                            <YAxis />
-                            <Tooltip />
-                            <Area
-                                type="monotone"
-                                dataKey="price"
-                                fill="url(#chartColor)" // Set fill color to primary color
-                                name="BTC Price"
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                    <HistoryChart priceHistory={btcPriceHistory} />
                 </CardContent>
                 <CardFooter>
                 </CardFooter>
             </Card>
 
-            <Card>
+            <Card className='m-4'>
                 <TradeTable columns={columns} data={TradeData} />
             </Card>
 
